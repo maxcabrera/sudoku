@@ -41,8 +41,24 @@ def naked_twins(values):
     and because it is simpler (since the reduce_puzzle function already calls this
     strategy repeatedly).
     """
-    # TODO: Implement this function!
-    raise NotImplementedError
+    for unit in unitlist:
+        #Returns all boxes in an unit where there are 2 values
+        possibilities = [box for box in unit if len(values[box]) == 2]
+        twins =[]
+
+        for p in possibilities:
+            for p2 in possibilities:
+                if p == p2: break
+                if values[p] == values[p2]: twins.append((p, p2))
+
+        for twin in twins:
+            for box in unit:
+                if box not in twin:
+                    for digit in values[twin[0]]:
+                        values = assign_value(values, box, values[box].replace(digit, ''))
+                        #values[box] = values[box].replace(digit, '')
+
+    return values
 
 
 def eliminate(values):
@@ -65,7 +81,9 @@ def eliminate(values):
     for box in solved_values:
         digit = values[box]
         for peer in peers[box]:
-            values[peer] = values[peer].replace(digit, '')
+            values = assign_value(values, peer, values[peer].replace(digit, ''))
+            #values[peer] = values[peer].replace(digit, '')
+
     return values
 
 
@@ -93,7 +111,10 @@ def only_choice(values):
         for digit in '123456789':
             dplaces = [box for box in unit if digit in values[box]]
             if len(dplaces) == 1:
-                values[dplaces[0]] = digit
+                boxy = dplaces[0]
+                values = assign_value(values, boxy, digit)
+                #values[dplaces[0]] = digit
+
     return values
 
 
@@ -116,6 +137,7 @@ def reduce_puzzle(values):
     while not stalled:
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
+        values = naked_twins(values)
         values = only_choice(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
@@ -178,9 +200,7 @@ def solve(grid):
         The dictionary representation of the final sudoku grid or False if no solution exists.
     """
     values = grid2values(grid)
-    print('The first values:', values)
     values = search(values)
-    print('Second values:', values)
     return values
 
 
